@@ -1,3 +1,5 @@
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby2Q61es3pFXPeCDO__3CZjeS3yZOxJsYvSklixs2uXftoW6j9nqM-RbQ79cN2Lf6A-/exec";
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -274,7 +276,7 @@
             <div class="form-group">
                 <label>Nom du Vendeur :</label>
                 <select id="vendeur-select">
-                    <option value="">-- Sélectionner un vendeur --</option>
+                    <option value="">-- Chargement des employés --</option>
                 </select>
             </div>
 
@@ -289,63 +291,4 @@
                     <option value="25%">25%</option>
                     <option value="30%">30%</option>
                     <option value="35%">35%</option>
-                    <option value="40%">40%</option>
-                </select>
-            </div>
-
-            <div id="cart-items" class="cart-items">
-                <div style="color: #94a3b8; text-align: center;">Le panier est vide</div>
-            </div>
-
-            <div class="cart-total">
-                <span>Total :</span>
-                <span id="cart-total-price">0 $</span>
-            </div>
-
-            <button id="btn-valider" class="btn-submit" onclick="validerVente()">
-                <div id="spinner" class="spinner"></div>
-                <span id="btn-text">Enregistrer la vente</span>
-            </button>
-        </div>
-    </div>
-
-    <script>
-        // METS ICI TON URL DE DÉPLOIEMENT GOOGLE APPS SCRIPT
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby2Q61es3pFXPeCDO__3CZjeS3yZOxJsYvSklixs2uXftoW6j9nqM-RbQ79cN2Lf6A-/exec";
-
-        let allProducts = [];
-        let cart = [];
-
-        window.onload = function() {
-            fetch(WEB_APP_URL)
-                .then(res => res.json())
-                .then(data => {
-                    allProducts = data.produits;
-                    afficherProduits(allProducts);
-                    
-                    const empSelect = document.getElementById('vendeur-select');
-                    empSelect.innerHTML = '<option value="">-- Sélectionner un vendeur --</option>';
-                    data.employes.forEach(emp => {
-                        let opt = document.createElement('option');
-                        opt.value = emp;
-                        opt.textContent = emp;
-                        empSelect.appendChild(opt);
-                    });
-                    document.getElementById('catalog-loading').style.display = 'none';
-                })
-                .catch(err => {
-                    document.getElementById('catalog-loading').innerHTML = "Erreur de chargement : " + err;
-                });
-        };
-
-        function afficherProduits(produits) {
-            const grid = document.getElementById('product-grid');
-            grid.innerHTML = '';
-            produits.forEach(prod => {
-                let card = document.createElement('div');
-                card.className = 'product-card';
-                card.onclick = () => ajouterAuPanier(prod.id);
-                card.innerHTML = `
-                    <div>
-                        <img src="${prod.img}" alt="${prod.nom}" onerror="this.src='https://via.placeholder.com/150'">
-                        <h4>
+                    <option value="40%">
