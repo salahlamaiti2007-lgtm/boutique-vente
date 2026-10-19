@@ -255,14 +255,6 @@
             </div>
 
             <div class="form-group">
-                <label>Date de la vente :</label>
-                <select id="date-select">
-                    <option value="today">Aujourd'hui</option>
-                    <option value="tomorrow">Demain</option>
-                </select>
-            </div>
-
-            <div class="form-group">
                 <label>Réduction :</label>
                 <select id="reduction-select">
                     <option value="0%">0%</option>
@@ -411,7 +403,6 @@
 
         function validerVente() {
             const vendeur = document.getElementById('vendeur-select').value;
-            const dateChoix = document.getElementById('date-select').value;
             const reduction = document.getElementById('reduction-select').value;
 
             if (!vendeur) {
@@ -423,15 +414,7 @@
                 return;
             }
 
-            // Calcul de la date (aujourd'hui ou demain)
-            let targetDate = new Date();
-            if (dateChoix === 'tomorrow') {
-                targetDate.setDate(targetDate.getDate() + 1);
-            }
-            let dateFormatted = ('0' + targetDate.getDate()).slice(-2) + '/' + ('0' + (targetDate.getMonth() + 1)).slice(-2) + '/' + targetDate.getFullYear();
-
             const dataToSend = {
-                dateCustom: dateFormatted,
                 vendeur: vendeur,
                 reduction: reduction,
                 items: cart
