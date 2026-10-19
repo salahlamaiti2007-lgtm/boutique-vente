@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Boutique - Saisie des Ventes</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #f4f6f9; margin: 0; padding: 20px; display: flex; gap: 20px; }
+    .catalogue { flex: 2; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+    .card { background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+    .card img { width: 100%; height: 120px; object-fit: contain; border-radius: 4px; }
+    .card h3 { margin: 10px 0 5px 0; font-size: 1.1em; }
+    .card .price { font-weight: bold; color: #2e7d32; margin-bottom: 10px; }
+    .card button { background: #1976d2; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+    .card button:hover { background: #1565c0; }
+    
+    .panier { flex: 1; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); height: fit-content; }
+    .panier h2 { margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+    .item-panier { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
+    .total { font-size: 1.2em; font-weight: bold; margin-top: 15px; text-align: right; }
+    .btn-valider { background: #2e7d32; color: white; border: none; width: 100%; padding: 12px; font-size: 1em; border-radius: 4px; cursor: pointer; margin-top: 15px; }
+    .btn-valider:hover { background: #1b5e20; }
+    select, input { width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; }
+    label { font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 5px; }
+  </style>
+</head>
+<body>
+
+<iframe name="hidden-iframe" style="display:none;"></iframe>
+
+<script>
+  function envoyerVente() {
+    const vendeur = document.getElementById('vendeur').value;
+    const reduction = document.getElementById('reduction').value;
+    
+    if (!vendeur) return alert("Veuillez sélectionner un vendeur !");
+    if (panier.length === 0) return alert("Le panier est vide !");
+
+    // Création d'un formulaire qui cible l'iframe cachée
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = URL_GOOGLE_SCRIPT;
+    form.target = 'hidden-iframe'; // Envoi discret sans ouvrir de page
+
+    const inputVendeur = document.createElement('input');
+    inputVendeur.type = 'hidden';
+    inputVendeur.name = 'vendeur';
+    inputVendeur.value = vendeur;
+    form.appendChild(inputVendeur);
+
+    const inputReduc = document.createElement('input');
+    inputReduc.type = 'hidden';
+    inputReduc.name = 'reduction';
+    inputReduc.value = reduction;
+    form.appendChild(inputReduc);
+
+    const inputPanier = document.createElement('input');
+    inputPanier.type = 'hidden';
+    inputPanier.name = 'panier';
+    inputPanier.value = JSON.stringify(panier);
+    form.appendChild(inputPanier);
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+
+    alert("Vente enregistrée avec succès dans le Google Sheets !");
+    panier = [];
+    misaJourPanier();
+  }
+</script>
+  <div class="catalogue" id="catalogue">Chargement...</div>
+
+  <div class="panier">
+    <h2>Panier</h2>
+    
+    <label>Nom du Vendeur :</label>
+    <select id="vendeur">
+      <option value="">-- Chargement des employés --</option>
+    </select>
+
+    <label>Réduction :</label>
+    <select id="reduction" onchange="misaJourPanier()">
+      <option value="0%">0%</option>
+      <option value="5%">5%</option>
+      <option value="10%">10%</option>
+      <option value="15%">15%</option>
+      <option value="20%">20%</option>
+      <option value="25%">25%</option>
+      <option value="30%">30%</option>
+      <option value="35%">35%</option>
+      <option value="40%">40%</option>
+    </select>
+
+    <div id="contenu-panier">
+      <p style="color: #888;">Le panier est vide</p>
+    </div>
+
+    <div class="total">Total : <span id="total-prix">0</span> $</div>
+    <button class="btn-valider" onclick="envoyerVente()">Enregistrer la vente</button>
+  </div>
+
+  <script>
+    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbx25I4U-L-zHF1mCW5qqKZD4AM8Z6su2Llxtj8AP-bssfKkf4won2cT4Dzpkz6P01RV/exec";
+    let PRODUITS = [];
+    let EMPLOYES = [];
+    let panier = [];
+
+    async function chargerDonnees() {
+      try {
+        let response = await fetch(URL_GOOGLE_SCRIPT + "?redirect=true", {
+          method: "GET",
+          redirect: "follow"
+        });
+        let data = await response.json();
+        
+        PRODUITS = data.produits;
+        EMPLOYES = data.employes;
+        
+        afficherCatalogue();
+        afficherEmployes();
+      } catch (e) {
+        document.getElementById('catalogue').innerHTML = "Erreur de chargement : " + e.message;
+      }
+    }
+
+    function afficherCatalogue() {
+      const cat = document.getElementById('catalogue');
+      if(PRODUITS.length === 0) {
+        cat.innerHTML = "Aucun produit trouvé.";
+        return;
+      }
+      cat.innerHTML = PRODUITS.map(p => `
+        <div class="card">
+          <img src="${p.img}" alt="${p.nom}">
+          <h3>${p.nom}</h3>
+          <div class="price">${p.prix} $</div>
+          <button onclick="ajouterAuPanier(${p.id})">Ajouter</button>
+        </div>
+      `).join('');
+    }
+
+    function afficherEmployes() {
+      const select = document.getElementById('vendeur');
+      select.innerHTML = '<option value="">-- Choisir un vendeur --</option>' + 
+        EMPLOYES.map(emp => `<option value="${emp}">${emp}</option>`).join('');
+    }
+
+    function ajouterAuPanier(id) {
+      const prod = PRODUITS.find(p => p.id === id);
+      const existe = panier.find(item => item.id === id);
+      if(existe) {
+        existe.quantite++;
+      } else {
+        panier.push({ id: prod.id, produit: prod.nom, cout: prod.cout, prixVente: prod.prix, quantite: 1 });
+      }
+      misaJourPanier();
+    }
+
+    function misaJourPanier() {
+      const div = document.getElementById('contenu-panier');
+      if(panier.length === 0) {
+        div.innerHTML = '<p style="color: #888;">Le panier est vide</p>';
+        document.getElementById('total-prix').innerText = "0";
+        return;
+      }
+
+      let totalBrut = 0;
+      div.innerHTML = panier.map(item => {
+        totalBrut += item.prixVente * item.quantite;
+        return `
+          <div class="item-panier">
+            <div>
+              <strong>${item.produit}</strong><br>
+              ${item.prixVente} $ x ${item.quantite}
+            </div>
+            <div>
+              <button onclick="changerQte(${item.id}, -1)">-</button>
+              <button onclick="changerQte(${item.id}, 1)">+</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Appliquer la réduction sélectionnée
+      const reductionSelect = document.getElementById('reduction').value;
+      const tauxReduc = parseInt(reductionSelect) / 100;
+      let totalFinal = totalBrut * (1 - tauxReduc);
+
+      document.getElementById('total-prix').innerText = totalFinal.toFixed(0);
+    }
+
+    function changerQte(id, delta) {
+      const item = panier.find(i => i.id === id);
+      if(item) {
+        item.quantite += delta;
+        if(item.quantite <= 0) panier = panier.filter(i => i.id !== id);
+      }
+      misaJourPanier();
+    }
+
+async function envoyerVente() {
+  const vendeur = document.getElementById('vendeur').value;
+  const reduction = document.getElementById('reduction').value;
+  
+  if (!vendeur) return alert("Veuillez sélectionner un vendeur !");
+  if (panier.length === 0) return alert("Le panier est vide !");
+
+  const urlParams = new URLSearchParams({
+    action: "addVente",
+    vendeur: vendeur,
+    reduction: reduction,
+    panier: JSON.stringify(panier)
+  });
+
+  try {
+    // On utilise navigator.sendBeacon ou un appel silencieux pour éviter l'ouverture de page
+    await fetch(URL_GOOGLE_SCRIPT + "?" + urlParams.toString(), {
+      method: "GET",
+      mode: "no-cors"
+    });
+    
+    alert("Vente enregistrée avec succès dans le Google Sheets !");
+    panier = [];
+    misaJourPanier();
+  } catch (e) {
+    alert("Erreur lors de l'envoi : " + e);
+  }
+}
+
+    chargerDonnees();
+  </script>
+</body>
+</html>
