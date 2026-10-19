@@ -26,49 +26,6 @@
 </head>
 <body>
 
-<iframe name="hidden-iframe" style="display:none;"></iframe>
-
-<script>
-  function envoyerVente() {
-    const vendeur = document.getElementById('vendeur').value;
-    const reduction = document.getElementById('reduction').value;
-    
-    if (!vendeur) return alert("Veuillez sélectionner un vendeur !");
-    if (panier.length === 0) return alert("Le panier est vide !");
-
-    // Création d'un formulaire qui cible l'iframe cachée
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = URL_GOOGLE_SCRIPT;
-    form.target = 'hidden-iframe'; // Envoi discret sans ouvrir de page
-
-    const inputVendeur = document.createElement('input');
-    inputVendeur.type = 'hidden';
-    inputVendeur.name = 'vendeur';
-    inputVendeur.value = vendeur;
-    form.appendChild(inputVendeur);
-
-    const inputReduc = document.createElement('input');
-    inputReduc.type = 'hidden';
-    inputReduc.name = 'reduction';
-    inputReduc.value = reduction;
-    form.appendChild(inputReduc);
-
-    const inputPanier = document.createElement('input');
-    inputPanier.type = 'hidden';
-    inputPanier.name = 'panier';
-    inputPanier.value = JSON.stringify(panier);
-    form.appendChild(inputPanier);
-
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
-
-    alert("Vente enregistrée avec succès dans le Google Sheets !");
-    panier = [];
-    misaJourPanier();
-  }
-</script>
   <div class="catalogue" id="catalogue">Chargement...</div>
 
   <div class="panier">
@@ -101,7 +58,7 @@
   </div>
 
   <script>
-    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbx25I4U-L-zHF1mCW5qqKZD4AM8Z6su2Llxtj8AP-bssfKkf4won2cT4Dzpkz6P01RV/exec";
+    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycby2Q61es3pFXPeCDO__3CZjeS3yZOxJsYvSklixs2uXftoW6j9nqM-RbQ79cN2Lf6A-/exec";
     let PRODUITS = [];
     let EMPLOYES = [];
     let panier = [];
