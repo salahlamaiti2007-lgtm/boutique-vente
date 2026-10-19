@@ -1,196 +1,456 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Boutique - Saisie des Ventes</title>
-  <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #f4f6f9; margin: 0; padding: 20px; display: flex; gap: 20px; }
-    .catalogue { flex: 2; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-    .card { background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
-    .card img { width: 100%; height: 120px; object-fit: contain; border-radius: 4px; }
-    .card h3 { margin: 10px 0 5px 0; font-size: 1.1em; }
-    .card .price { font-weight: bold; color: #2e7d32; margin-bottom: 10px; }
-    .card button { background: #1976d2; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
-    .card button:hover { background: #1565c0; }
-    
-    .panier { flex: 1; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); height: fit-content; }
-    .panier h2 { margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-    .item-panier { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
-    .total { font-size: 1.2em; font-weight: bold; margin-top: 15px; text-align: right; }
-    .btn-valider { background: #2e7d32; color: white; border: none; width: 100%; padding: 12px; font-size: 1em; border-radius: 4px; cursor: pointer; margin-top: 15px; }
-    .btn-valider:hover { background: #1b5e20; }
-    select, input { width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; }
-    label { font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 5px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boutique - Saisie des Ventes</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Catalogue Produits */
+        .catalog-section {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .search-bar:focus {
+            border-color: var(--primary);
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+            max-height: 70vh;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .product-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px -2px rgb(79 70 229 / 0.15);
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: #f1f5f9;
+        }
+
+        .product-card h4 {
+            font-size: 0.95rem;
+            margin: 6px 0;
+            font-weight: 600;
+        }
+
+        .product-card .price {
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        /* Panier & Formulaire */
+        .cart-section {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            display: flex;
+            flex-direction: column;
+            height: fit-content;
+        }
+
+        .cart-section h2 {
+            margin-top: 0;
+            font-size: 1.3rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .form-group select:focus, .form-group input:focus {
+            border-color: var(--primary);
+        }
+
+        .cart-items {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 0;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            background: #f8fafc;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .cart-item-controls button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .cart-item-controls input {
+            width: 40px;
+            text-align: center;
+            padding: 4px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .cart-total {
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-top: 10px;
+        }
+
+        .btn-submit {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        .btn-submit:hover {
+            background: #059669;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+    </style>
 </head>
 <body>
 
-  <div class="catalogue" id="catalogue">Chargement des produits depuis le Sheets...</div>
+    <div class="container">
+        <!-- Catalogue -->
+        <div class="catalog-section">
+            <input type="text" id="search-input" class="search-bar" placeholder="🔍 Rechercher un produit..." oninput="filtrerProduits()">
+            <div id="catalog-loading" class="loading">Chargement du catalogue...</div>
+            <div id="product-grid" class="product-grid"></div>
+        </div>
 
-  <div class="panier">
-    <h2>Panier</h2>
-    
-    <label>Nom du Vendeur :</label>
-    <select id="vendeur">
-      <option value="">-- Chargement des employés --</option>
-    </select>
+        <!-- Panier -->
+        <div class="cart-section">
+            <h2>Panier</h2>
+            
+            <div class="form-group">
+                <label>Nom du Vendeur :</label>
+                <select id="vendeur-select">
+                    <option value="">-- Chargement des employés --</option>
+                </select>
+            </div>
 
-    <label>Réduction :</label>
-    <select id="reduction" onchange="misaJourPanier()">
-      <option value="0%">0%</option>
-      <option value="5%">5%</option>
-      <option value="10%">10%</option>
-      <option value="15%">15%</option>
-      <option value="20%">20%</option>
-      <option value="25%">25%</option>
-      <option value="30%">30%</option>
-      <option value="35%">35%</option>
-      <option value="40%">40%</option>
-    </select>
+            <div class="form-group">
+                <label>Date de la vente :</label>
+                <select id="date-select">
+                    <option value="today">Aujourd'hui</option>
+                    <option value="tomorrow">Demain</option>
+                </select>
+            </div>
 
-    <div id="contenu-panier">
-      <p style="color: #888;">Le panier est vide</p>
+            <div class="form-group">
+                <label>Réduction :</label>
+                <select id="reduction-select">
+                    <option value="0%">0%</option>
+                    <option value="5%">5%</option>
+                    <option value="10%">10%</option>
+                    <option value="15%">15%</option>
+                    <option value="20%">20%</option>
+                    <option value="25%">25%</option>
+                    <option value="30%">30%</option>
+                    <option value="35%">35%</option>
+                    <option value="40%">40%</option>
+                </select>
+            </div>
+
+            <div id="cart-items" class="cart-items">
+                <div style="color: #94a3b8; text-align: center;">Le panier est vide</div>
+            </div>
+
+            <div class="cart-total">
+                <span>Total :</span>
+                <span id="cart-total-price">0 $</span>
+            </div>
+
+            <button class="btn-submit" onclick="validerVente()">Enregistrer la vente</button>
+        </div>
     </div>
 
-    <div class="total">Total : <span id="total-prix">0</span> $</div>
-    <button class="btn-valider" onclick="envoyerVente()">Enregistrer la vente</button>
-  </div>
+    <script>
+        // METS ICI TON URL DE DÉPLOIEMENT GOOGLE APPS SCRIPT
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby2Q61es3pFXPeCDO__3CZjeS3yZOxJsYvSklixs2uXftoW6j9nqM-RbQ79cN2Lf6A-/exec";
 
-  <!-- Iframe cachée pour l'envoi discret des données -->
-  <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+        let allProducts = [];
+        let cart = [];
 
-  <script>
-    // Mets ton URL Google Apps Script ici
-    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycby2Q61es3pFXPeCDO__3CZjeS3yZOxJsYvSklixs2uXftoW6j9nqM-RbQ79cN2Lf6A-/exec";
-    
-    let PRODUITS = [];
-    let EMPLOYES = [];
-    let panier = [];
+        window.onload = function() {
+            fetch(WEB_APP_URL)
+                .then(res => res.json())
+                .then(data => {
+                    allProducts = data.produits;
+                    afficherProduits(allProducts);
+                    
+                    const empSelect = document.getElementById('vendeur-select');
+                    empSelect.innerHTML = '<option value="">-- Sélectionner un vendeur --</option>';
+                    data.employes.forEach(emp => {
+                        let opt = document.createElement('option');
+                        opt.value = emp;
+                        opt.textContent = emp;
+                        empSelect.appendChild(opt);
+                    });
+                    document.getElementById('catalog-loading').style.display = 'none';
+                })
+                .catch(err => {
+                    document.getElementById('catalog-loading').innerHTML = "Erreur de chargement : " + err;
+                });
+        };
 
-    async function chargerDonnees() {
-      try {
-        let response = await fetch(URL_GOOGLE_SCRIPT + "?redirect=true", {
-          method: "GET",
-          redirect: "follow"
-        });
-        let data = await response.json();
-        
-        PRODUITS = data.produits;
-        EMPLOYES = data.employes;
-        
-        afficherCatalogue();
-        afficherEmployes();
-      } catch (e) {
-        document.getElementById('catalogue').innerHTML = "Erreur de chargement : " + e.message;
-      }
-    }
+        function afficherProduits(produits) {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '';
+            produits.forEach(prod => {
+                let card = document.createElement('div');
+                card.className = 'product-card';
+                card.onclick = () => ajouterAuPanier(prod.id);
+                card.innerHTML = `
+                    <div>
+                        <img src="${prod.img}" alt="${prod.nom}" onerror="this.src='https://via.placeholder.com/150'">
+                        <h4>${prod.nom}</h4>
+                    </div>
+                    <div class="price">${prod.prix} $</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
 
-    function afficherCatalogue() {
-      const cat = document.getElementById('catalogue');
-      if(PRODUITS.length === 0) {
-        cat.innerHTML = "Aucun produit trouvé.";
-        return;
-      }
-      cat.innerHTML = PRODUITS.map(p => `
-        <div class="card">
-          <img src="${p.img}" alt="${p.nom}">
-          <h3>${p.nom}</h3>
-          <div class="price">${p.prix} $</div>
-          <button onclick="ajouterAuPanier(${p.id})">Ajouter</button>
-        </div>
-      `).join('');
-    }
+        function filtrerProduits() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allProducts.filter(p => p.nom.toLowerCase().includes(query));
+            afficherProduits(filtered);
+        }
 
-    function afficherEmployes() {
-      const select = document.getElementById('vendeur');
-      select.innerHTML = '<option value="">-- Choisir un vendeur --</option>' + 
-        EMPLOYES.map(emp => `<option value="${emp}">${emp}</option>`).join('');
-    }
+        function ajouterAuPanier(id) {
+            let produit = allProducts.find(p => p.id === id);
+            let itemInCart = cart.find(i => i.id === id);
+            if (itemInCart) {
+                itemInCart.quantite++;
+            } else {
+                cart.push({ ...produit, quantite: 1 });
+            }
+            mettreAJourPanier();
+        }
 
-    function ajouterAuPanier(id) {
-      const prod = PRODUITS.find(p => p.id === id);
-      const existe = panier.find(item => item.id === id);
-      if(existe) {
-        existe.quantite++;
-      } else {
-        panier.push({ id: prod.id, produit: prod.nom, cout: prod.cout, prixVente: prod.prix, quantite: 1 });
-      }
-      misaJourPanier();
-    }
+        function changerQuantite(id, delta) {
+            let item = cart.find(i => i.id === id);
+            if (item) {
+                item.quantite += delta;
+                if (item.quantite <= 0) {
+                    cart = cart.filter(i => i.id !== id);
+                }
+            }
+            mettreAJourPanier();
+        }
 
-    function misaJourPanier() {
-      const div = document.getElementById('contenu-panier');
-      if(panier.length === 0) {
-        div.innerHTML = '<p style="color: #888;">Le panier est vide</p>';
-        document.getElementById('total-prix').innerText = "0";
-        return;
-      }
+        function modifierQuantiteInput(id, val) {
+            let q = parseInt(val);
+            let item = cart.find(i => i.id === id);
+            if (item) {
+                if (isNaN(q) || q <= 0) {
+                    cart = cart.filter(i => i.id !== id);
+                } else {
+                    item.quantite = q;
+                }
+            }
+            mettreAJourPanier();
+        }
 
-      let totalBrut = 0;
-      div.innerHTML = panier.map(item => {
-        totalBrut += item.prixVente * item.quantite;
-        return `
-          <div class="item-panier">
-            <div>
-              <strong>${item.produit}</strong><br>
-              ${item.prixVente} $ x ${item.quantite}
-            </div>
-            <div>
-              <button onclick="changerQte(${item.id}, -1)">-</button>
-              <button onclick="changerQte(${item.id}, 1)">+</button>
-            </div>
-          </div>
-        `;
-      }).join('');
+        function mettreAJourPanier() {
+            const container = document.getElementById('cart-items');
+            const totalElement = document.getElementById('cart-total-price');
+            
+            if (cart.length === 0) {
+                container.innerHTML = '<div style="color: #94a3b8; text-align: center;">Le panier est vide</div>';
+                totalElement.textContent = '0 $';
+                return;
+            }
 
-      const reductionSelect = document.getElementById('reduction').value;
-      let totalFinal = totalBrut * (1 - parseInt(reductionSelect) / 100);
-      document.getElementById('total-prix').innerText = totalFinal.toFixed(0);
-    }
+            container.innerHTML = '';
+            let totalGeneral = 0;
 
-    function changerQte(id, delta) {
-      const item = panier.find(i => i.id === id);
-      if(item) {
-        item.quantite += delta;
-        if(item.quantite <= 0) panier = panier.filter(i => i.id !== id);
-      }
-      misaJourPanier();
-    }
+            cart.forEach(item => {
+                totalGeneral += item.prix * item.quantite;
+                let div = document.createElement('div');
+                div.className = 'cart-item';
+                div.innerHTML = `
+                    <span>${item.nom} (${item.prix}$)</span>
+                    <div class="cart-item-controls">
+                        <button onclick="changerQuantite(${item.id}, -1)">-</button>
+                        <input type="number" value="${item.quantite}" min="1" onchange="modifierQuantiteInput(${item.id}, this.value)">
+                        <button onclick="changerQuantite(${item.id}, 1)">+</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
 
-    function envoyerVente() {
-      const vendeur = document.getElementById('vendeur').value;
-      const reduction = document.getElementById('reduction').value;
-      
-      if(!vendeur) return alert("Veuillez sélectionner un vendeur !");
-      if(panier.length === 0) return alert("Le panier est vide !");
+            totalElement.textContent = totalGeneral + ' $';
+        }
 
-      // Création d'un formulaire invisible qui cible l'iframe
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = URL_GOOGLE_SCRIPT;
-      form.target = 'hidden_iframe';
+        function validerVente() {
+            const vendeur = document.getElementById('vendeur-select').value;
+            const dateChoix = document.getElementById('date-select').value;
+            const reduction = document.getElementById('reduction-select').value;
 
-      const inputData = document.createElement('input');
-      inputData.type = 'hidden';
-      inputData.name = 'data';
-      inputData.value = JSON.stringify({
-        vendeur: vendeur,
-        reduction: reduction,
-        items: panier
-      });
-      form.appendChild(inputData);
+            if (!vendeur) {
+                alert("Veuillez sélectionner un vendeur !");
+                return;
+            }
+            if (cart.length === 0) {
+                alert("Le panier est vide !");
+                return;
+            }
 
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+            // Calcul de la date (aujourd'hui ou demain)
+            let targetDate = new Date();
+            if (dateChoix === 'tomorrow') {
+                targetDate.setDate(targetDate.getDate() + 1);
+            }
+            let dateFormatted = ('0' + targetDate.getDate()).slice(-2) + '/' + ('0' + (targetDate.getMonth() + 1)).slice(-2) + '/' + targetDate.getFullYear();
 
-      alert("Vente enregistrée avec succès dans le Google Sheets !");
-      panier = [];
-      misaJourPanier();
-    }
+            const dataToSend = {
+                dateCustom: dateFormatted,
+                vendeur: vendeur,
+                reduction: reduction,
+                items: cart
+            };
 
-    chargerDonnees();
-  </script>
+            fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataToSend)
+            }).then(() => {
+                alert("Vente enregistrée avec succès !");
+                cart = [];
+                mettreAJourPanier();
+                document.getElementById('vendeur-select').value = "";
+            }).catch(err => {
+                alert("Erreur lors de l'enregistrement : " + err);
+            });
+        }
+    </script>
 </body>
 </html>
