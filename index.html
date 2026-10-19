@@ -220,10 +220,34 @@
             cursor: pointer;
             transition: background 0.2s;
             width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
 
-        .btn-submit:hover {
+        .btn-submit:hover:not(:disabled) {
             background: #059669;
+        }
+
+        .btn-submit:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* Roue de chargement (Spinner) */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .loading {
@@ -250,7 +274,7 @@
             <div class="form-group">
                 <label>Nom du Vendeur :</label>
                 <select id="vendeur-select">
-                    <option value="">-- Chargement des employés --</option>
+                    <option value="">-- Sélectionner un vendeur --</option>
                 </select>
             </div>
 
@@ -278,7 +302,10 @@
                 <span id="cart-total-price">0 $</span>
             </div>
 
-            <button class="btn-submit" onclick="validerVente()">Enregistrer la vente</button>
+            <button id="btn-valider" class="btn-submit" onclick="validerVente()">
+                <div id="spinner" class="spinner"></div>
+                <span id="btn-text">Enregistrer la vente</span>
+            </button>
         </div>
     </div>
 
@@ -321,119 +348,4 @@
                 card.innerHTML = `
                     <div>
                         <img src="${prod.img}" alt="${prod.nom}" onerror="this.src='https://via.placeholder.com/150'">
-                        <h4>${prod.nom}</h4>
-                    </div>
-                    <div class="price">${prod.prix} $</div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function filtrerProduits() {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            const filtered = allProducts.filter(p => p.nom.toLowerCase().includes(query));
-            afficherProduits(filtered);
-        }
-
-        function ajouterAuPanier(id) {
-            let produit = allProducts.find(p => p.id === id);
-            let itemInCart = cart.find(i => i.id === id);
-            if (itemInCart) {
-                itemInCart.quantite++;
-            } else {
-                cart.push({ ...produit, quantite: 1 });
-            }
-            mettreAJourPanier();
-        }
-
-        function changerQuantite(id, delta) {
-            let item = cart.find(i => i.id === id);
-            if (item) {
-                item.quantite += delta;
-                if (item.quantite <= 0) {
-                    cart = cart.filter(i => i.id !== id);
-                }
-            }
-            mettreAJourPanier();
-        }
-
-        function modifierQuantiteInput(id, val) {
-            let q = parseInt(val);
-            let item = cart.find(i => i.id === id);
-            if (item) {
-                if (isNaN(q) || q <= 0) {
-                    cart = cart.filter(i => i.id !== id);
-                } else {
-                    item.quantite = q;
-                }
-            }
-            mettreAJourPanier();
-        }
-
-        function mettreAJourPanier() {
-            const container = document.getElementById('cart-items');
-            const totalElement = document.getElementById('cart-total-price');
-            
-            if (cart.length === 0) {
-                container.innerHTML = '<div style="color: #94a3b8; text-align: center;">Le panier est vide</div>';
-                totalElement.textContent = '0 $';
-                return;
-            }
-
-            container.innerHTML = '';
-            let totalGeneral = 0;
-
-            cart.forEach(item => {
-                totalGeneral += item.prix * item.quantite;
-                let div = document.createElement('div');
-                div.className = 'cart-item';
-                div.innerHTML = `
-                    <span>${item.nom} (${item.prix}$)</span>
-                    <div class="cart-item-controls">
-                        <button onclick="changerQuantite(${item.id}, -1)">-</button>
-                        <input type="number" value="${item.quantite}" min="1" onchange="modifierQuantiteInput(${item.id}, this.value)">
-                        <button onclick="changerQuantite(${item.id}, 1)">+</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-
-            totalElement.textContent = totalGeneral + ' $';
-        }
-
-        function validerVente() {
-            const vendeur = document.getElementById('vendeur-select').value;
-            const reduction = document.getElementById('reduction-select').value;
-
-            if (!vendeur) {
-                alert("Veuillez sélectionner un vendeur !");
-                return;
-            }
-            if (cart.length === 0) {
-                alert("Le panier est vide !");
-                return;
-            }
-
-            const dataToSend = {
-                vendeur: vendeur,
-                reduction: reduction,
-                items: cart
-            };
-
-            fetch(WEB_APP_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dataToSend)
-            }).then(() => {
-                alert("Vente enregistrée avec succès !");
-                cart = [];
-                mettreAJourPanier();
-                document.getElementById('vendeur-select').value = "";
-            }).catch(err => {
-                alert("Erreur lors de l'enregistrement : " + err);
-            });
-        }
-    </script>
-</body>
-</html>
+                        <h4>
