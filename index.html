@@ -156,35 +156,42 @@
       misaJourPanier();
     }
 
-async function envoyerVente() {
-  const vendeur = document.getElementById('vendeur').value;
-  const reduction = document.getElementById('reduction').value;
-  
-  if (!vendeur) return alert("Veuillez sélectionner un vendeur !");
-  if (panier.length === 0) return alert("Le panier est vide !");
+<!-- Ajoute cette ligne tout en bas de ton HTML, juste avant </body> -->
+<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 
-  const urlParams = new URLSearchParams({
-    action: "addVente",
-    vendeur: vendeur,
-    reduction: reduction,
-    panier: JSON.stringify(panier)
-  });
-
-  try {
-    // On utilise navigator.sendBeacon ou un appel silencieux pour éviter l'ouverture de page
-    await fetch(URL_GOOGLE_SCRIPT + "?" + urlParams.toString(), {
-      method: "GET",
-      mode: "no-cors"
-    });
+<script>
+  function envoyerVente() {
+    const vendeur = document.getElementById('vendeur').value;
+    const reduction = document.getElementById('reduction').value;
     
+    if (!vendeur) return alert("Veuillez sélectionner un vendeur !");
+    if (panier.length === 0) return alert("Le panier est vide !");
+
+    // Création d'un formulaire invisible qui cible l'iframe
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = URL_GOOGLE_SCRIPT;
+    form.target = 'hidden_iframe';
+
+    const inputData = document.createElement('input');
+    inputData.type = 'hidden';
+    inputData.name = 'data';
+    inputData.value = JSON.stringify({
+      vendeur: vendeur,
+      reduction: reduction,
+      items: panier
+    });
+    form.appendChild(inputData);
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+
     alert("Vente enregistrée avec succès dans le Google Sheets !");
     panier = [];
     misaJourPanier();
-  } catch (e) {
-    alert("Erreur lors de l'envoi : " + e);
   }
-}
-
+</script>
     chargerDonnees();
   </script>
 </body>
