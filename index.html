@@ -26,7 +26,7 @@
 </head>
 <body>
 
-  <div class="catalogue" id="catalogue">Chargement...</div>
+  <div class="catalogue" id="catalogue">Chargement des produits depuis le Sheets...</div>
 
   <div class="panier">
     <h2>Panier</h2>
@@ -57,8 +57,13 @@
     <button class="btn-valider" onclick="envoyerVente()">Enregistrer la vente</button>
   </div>
 
+  <!-- Iframe cachée pour l'envoi discret des données -->
+  <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+
   <script>
+    // Mets ton URL Google Apps Script ici
     const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycby2Q61es3pFXPeCDO__3CZjeS3yZOxJsYvSklixs2uXftoW6j9nqM-RbQ79cN2Lf6A-/exec";
+    
     let PRODUITS = [];
     let EMPLOYES = [];
     let panier = [];
@@ -139,11 +144,8 @@
         `;
       }).join('');
 
-      // Appliquer la réduction sélectionnée
       const reductionSelect = document.getElementById('reduction').value;
-      const tauxReduc = parseInt(reductionSelect) / 100;
-      let totalFinal = totalBrut * (1 - tauxReduc);
-
+      let totalFinal = totalBrut * (1 - parseInt(reductionSelect) / 100);
       document.getElementById('total-prix').innerText = totalFinal.toFixed(0);
     }
 
@@ -156,42 +158,38 @@
       misaJourPanier();
     }
 
-<!-- Ajoute cette ligne tout en bas de ton HTML, juste avant </body> -->
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+    function envoyerVente() {
+      const vendeur = document.getElementById('vendeur').value;
+      const reduction = document.getElementById('reduction').value;
+      
+      if(!vendeur) return alert("Veuillez sélectionner un vendeur !");
+      if(panier.length === 0) return alert("Le panier est vide !");
 
-<script>
-  function envoyerVente() {
-    const vendeur = document.getElementById('vendeur').value;
-    const reduction = document.getElementById('reduction').value;
-    
-    if (!vendeur) return alert("Veuillez sélectionner un vendeur !");
-    if (panier.length === 0) return alert("Le panier est vide !");
+      // Création d'un formulaire invisible qui cible l'iframe
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = URL_GOOGLE_SCRIPT;
+      form.target = 'hidden_iframe';
 
-    // Création d'un formulaire invisible qui cible l'iframe
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = URL_GOOGLE_SCRIPT;
-    form.target = 'hidden_iframe';
+      const inputData = document.createElement('input');
+      inputData.type = 'hidden';
+      inputData.name = 'data';
+      inputData.value = JSON.stringify({
+        vendeur: vendeur,
+        reduction: reduction,
+        items: panier
+      });
+      form.appendChild(inputData);
 
-    const inputData = document.createElement('input');
-    inputData.type = 'hidden';
-    inputData.name = 'data';
-    inputData.value = JSON.stringify({
-      vendeur: vendeur,
-      reduction: reduction,
-      items: panier
-    });
-    form.appendChild(inputData);
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
 
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
+      alert("Vente enregistrée avec succès dans le Google Sheets !");
+      panier = [];
+      misaJourPanier();
+    }
 
-    alert("Vente enregistrée avec succès dans le Google Sheets !");
-    panier = [];
-    misaJourPanier();
-  }
-</script>
     chargerDonnees();
   </script>
 </body>
